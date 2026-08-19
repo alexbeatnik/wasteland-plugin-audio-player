@@ -1,0 +1,12 @@
+{
+  "name": "wasteland-plugin-audio-player",
+  "private": true,
+  "type": "module",
+  "description": "Music for Wasteland Next — a folder of files, the tag readers that make sense of them, and a transport in the chat window.",
+  "license": "Apache-2.0",
+  "author": "Oleksii Poliakov",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "index": "node scripts/build-index.mjs"
+  }
+}
