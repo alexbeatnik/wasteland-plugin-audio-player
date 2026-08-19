@@ -13,8 +13,8 @@
       "kind": "code",
       "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSJub25lIgogICAgIHN0cm9rZT0iI2ZmYjAwMCIgc3Ryb2tlLXdpZHRoPSIxLjgiIHN0cm9rZS1saW5lY2FwPSJzcXVhcmUiPgogIDwhLS0gQSBsZXZlbCBtZXRlciByYXRoZXIgdGhhbiBhIG5vdGU6IHRoZSBhcHAgdGludHMgaWNvbnMgdGhyb3VnaCBpdHMgb3duCiAgICAgICBwYWxldHRlLCBzbyBzdHJhaWdodCBzdHJva2VzIHN1cnZpdmUgdGhlIGZpbHRlciBiZXR0ZXIgdGhhbiBhIGZpbGxlZCBnbHlwaC4gLS0+CiAgPHBhdGggZD0iTTQgMTVWOU04IDE4VjZNMTIgMTZWOE0xNiAxOVY1TTIwIDE0VjEwIiAvPgo8L3N2Zz4K",
       "url": "https://github.com/alexbeatnik/wasteland-plugin-audio-player/releases/download/plugins/audio-player-1.5.0.zip",
-      "sha256": "6f990c9036f263e9dec6d61de2b081541aef5b07f3c6a65d995d98bb43b46c05",
-      "size": 17793
+      "sha256": "4b3297130b8699c4c1828052acdf7f450d537f1d90a512b2187601a07125a955",
+      "size": 17538
     }
   ]
 }
