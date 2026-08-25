@@ -1,20 +1,20 @@
 {
   "schema": 1,
-  "updated": "2026-08-19",
+  "updated": "2026-08-25",
   "plugins": [
     {
       "id": "audio-player",
       "name": "Audio player",
-      "version": "1.5.0",
+      "version": "1.6.0",
       "description": "Plays music from a folder on your machine, with a transport in the chat window. Reads ID3 and Vorbis tags out of MP3, FLAC, Ogg and Opus, so it knows who performed a track even when the file name does not say. The model can start a song, build a playlist, skip and pause — and offers a list to click when several files could be what you meant. A playlist gathered from more than one album is shuffled, so a band comes out in a different order every time; an album keeps the order it was sequenced in.",
       "author": "alexbeatnik",
       "apiVersion": 3,
       "category": "media",
       "kind": "code",
       "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSJub25lIgogICAgIHN0cm9rZT0iI2ZmYjAwMCIgc3Ryb2tlLXdpZHRoPSIxLjgiIHN0cm9rZS1saW5lY2FwPSJzcXVhcmUiPgogIDwhLS0gQSBsZXZlbCBtZXRlciByYXRoZXIgdGhhbiBhIG5vdGU6IHRoZSBhcHAgdGludHMgaWNvbnMgdGhyb3VnaCBpdHMgb3duCiAgICAgICBwYWxldHRlLCBzbyBzdHJhaWdodCBzdHJva2VzIHN1cnZpdmUgdGhlIGZpbHRlciBiZXR0ZXIgdGhhbiBhIGZpbGxlZCBnbHlwaC4gLS0+CiAgPHBhdGggZD0iTTQgMTVWOU04IDE4VjZNMTIgMTZWOE0xNiAxOVY1TTIwIDE0VjEwIiAvPgo8L3N2Zz4K",
-      "url": "https://github.com/alexbeatnik/wasteland-plugin-audio-player/releases/download/plugins/audio-player-1.5.0.zip",
-      "sha256": "4b3297130b8699c4c1828052acdf7f450d537f1d90a512b2187601a07125a955",
-      "size": 17538
+      "url": "https://github.com/alexbeatnik/wasteland-plugin-audio-player/releases/download/plugins/audio-player-1.6.0.zip",
+      "sha256": "c067cddac43b50e008b9cb8e8ddc58b8184582d161e28110ca2c717e9169a313",
+      "size": 19244
     }
   ]
 }
