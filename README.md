@@ -27,6 +27,14 @@ A playlist gathered from more than one album is shuffled, so a band does not com
 album keeps the order it was sequenced in — track numbers are read for this, and a record that was made to be heard in
 sequence is heard in sequence. `library.mjs` holds both halves and `tests/playlist.test.mjs` pins them.
 
+## A helping, not a name
+
+"Five random songs", "something", "any band" — none of those is the name of anything, so searching the library for them
+found nothing and the answer came back as *there is no playlist to build*, in front of a library that was full.
+`helpingOnly` reads those words as what they are: how many, drawn how, out of everything. It is consulted only after a
+search has already failed, so a band actually called Random Order still plays when the library holds one, and any word
+it does not recognise is treated as a name — which is the safe way round.
+
 ## Settings
 
 **Music folder** — the directory scanned. Changing it rescans, which is what `ctx.onSettingsChanged` is for here;

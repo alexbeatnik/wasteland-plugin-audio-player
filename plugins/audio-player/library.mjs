@@ -196,6 +196,71 @@ export function queryTokens(query) {
 }
 
 /**
+ * Words that describe a helping of music rather than name any.
+ *
+ * "five random songs" is a shape, not a title, and nothing in a library is
+ * called that. Kept deliberately small: everything this does not know is
+ * treated as a name, which is the safe way round.
+ */
+const HELPING_WORDS = new Set([
+  'a', 'an', 'the', 'of', 'from', 'for', 'me', 'us', 'my', 'please',
+  'random', 'randomly', 'shuffle', 'shuffled', 'assorted', 'mixed',
+  'any', 'anything', 'some', 'something', 'whatever', 'surprise',
+  'song', 'songs', 'track', 'tracks', 'tune', 'tunes',
+  'band', 'bands', 'artist', 'artists', 'group', 'album', 'albums',
+  'music', 'playlist', 'mix', 'selection', 'stuff',
+  'play', 'queue', 'put', 'on',
+  'all', 'every', 'everything',
+]);
+
+/**
+ * Counts as they are written out.
+ *
+ * "five random songs" is the phrase a model produces when a user asks in their
+ * own language, and it counts exactly as "5" does. Single words only: "twenty
+ * five" is two counts, and two counts are not a helping.
+ */
+const NUMBER_WORDS = new Map([
+  ['one', 1], ['two', 2], ['three', 3], ['four', 4], ['five', 5],
+  ['six', 6], ['seven', 7], ['eight', 8], ['nine', 9], ['ten', 10],
+  ['eleven', 11], ['twelve', 12], ['fifteen', 15], ['twenty', 20],
+  ['thirty', 30], ['forty', 40], ['fifty', 50], ['hundred', 100],
+]);
+
+/**
+ * What a request asks for when it names no music at all.
+ *
+ * "Make me a playlist of 5 random songs" reaches the player as `random 5`, and
+ * a search for that found nothing — so a library with two hundred tracks in it
+ * was reported back as having nothing to play. The words are a helping, not a
+ * name: how many, drawn how, out of everything.
+ *
+ * Returns null the moment a word could be a title, an artist or an album,
+ * which is every word this does not know. A bare number is a name too — 1979
+ * is a song — so a count alone is not a helping either.
+ */
+export function helpingOnly(query) {
+  const words = queryTokens(query);
+  if (words.length === 0) return null;
+
+  let count = 0;
+  let named = false;
+  for (const word of words) {
+    const value = /^\d+$/.test(word) ? Number(word) : NUMBER_WORDS.get(word);
+    if (value !== undefined) {
+      // One count, and a believable one: "5 10" counts nothing.
+      if (count > 0 || value < 1 || value > MAX_TRACKS) return null;
+      count = value;
+      continue;
+    }
+    if (!HELPING_WORDS.has(word)) return null;
+    named = true;
+  }
+
+  return named ? { count } : null;
+}
+
+/**
  * Tracks matching a query, best first.
  *
  * Ranked rather than filtered. The first version required *every* word to

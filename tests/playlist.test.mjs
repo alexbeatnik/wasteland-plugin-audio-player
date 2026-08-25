@@ -12,7 +12,7 @@
  */
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { albumOrder, shuffled } from '../plugins/audio-player/library.mjs';
+import { albumOrder, helpingOnly, shuffled } from '../plugins/audio-player/library.mjs';
 
 /** A track as `readTracks` hands one over. */
 function track(path, { title, artist = '', album = '', trackNo = 0 } = {}) {
@@ -113,4 +113,57 @@ test('albumOrder keeps a compilation with a different artist on every line', () 
 
 test('albumOrder has nothing to say about a single track', () => {
   assert.equal(albumOrder([ten[0]]), null);
+});
+
+/**
+ * A helping rather than a name.
+ *
+ * The second bug: "make a playlist of 5 random songs" reached the player as a
+ * search for `random 5`, nothing in the library is called that, and a library
+ * of eleven Pearl Jam tracks came back as having no playlist to build. These
+ * pin down the line between a helping and a name — because getting it wrong the
+ * other way is worse: a real band read as a helping plays the wrong music
+ * silently, where a helping read as a name only says it found nothing.
+ */
+
+test('helpingOnly reads a count out of a helping', () => {
+  assert.deepEqual(helpingOnly('random 5'), { count: 5 });
+  assert.deepEqual(helpingOnly('5 songs'), { count: 5 });
+  assert.deepEqual(helpingOnly('12 random tracks'), { count: 12 });
+});
+
+test('helpingOnly counts a number that was written out', () => {
+  assert.deepEqual(helpingOnly('five random songs'), { count: 5 });
+  assert.deepEqual(helpingOnly('ten tracks'), { count: 10 });
+});
+
+test('helpingOnly reads a helping with no count as all of it', () => {
+  assert.deepEqual(helpingOnly('something'), { count: 0 });
+  assert.deepEqual(helpingOnly('any band'), { count: 0 });
+  assert.deepEqual(helpingOnly('some random music'), { count: 0 });
+  assert.deepEqual(helpingOnly('surprise me'), { count: 0 });
+});
+
+test('helpingOnly refuses anything that could be a name', () => {
+  assert.equal(helpingOnly('pearl jam'), null);
+  assert.equal(helpingOnly('random order'), null, 'Random Order is a band before it is an instruction');
+  assert.equal(helpingOnly('the black keys'), null);
+  assert.equal(helpingOnly('random access memories'), null);
+});
+
+test('helpingOnly refuses a bare number, which names a song as often as it counts one', () => {
+  assert.equal(helpingOnly('1979'), null);
+  assert.equal(helpingOnly('99'), null);
+});
+
+test('helpingOnly refuses two counts and an impossible one', () => {
+  assert.equal(helpingOnly('5 10 songs'), null);
+  assert.equal(helpingOnly('0 songs'), null);
+  assert.equal(helpingOnly('99999 songs'), null);
+});
+
+test('helpingOnly has nothing to say about an empty request', () => {
+  assert.equal(helpingOnly(''), null);
+  assert.equal(helpingOnly('   '), null);
+  assert.equal(helpingOnly(null), null);
 });

@@ -13,7 +13,7 @@
  * has no queue at all.
  */
 import { stat } from 'node:fs/promises';
-import { albumOrder, readTracks, scanFolder, search, shuffled } from './library.mjs';
+import { albumOrder, helpingOnly, readTracks, scanFolder, search, shuffled } from './library.mjs';
 
 /**
  * What the model is told.
@@ -65,7 +65,12 @@ an album keeps the order it was sequenced in. So this is the whole call:
 \`\`\`
 
 Add " | in order" to the end of "steps" only when they ask for it in order,
-or " | shuffle" to shuffle an album too.
+" | shuffle" to shuffle an album too, or " | 12" to stop at that many tracks.
+
+Asked for a helping rather than a name — "something", "any band", "five random
+songs", "surprise me" — pass their words through as "steps" unchanged. That
+draws from the whole library at random. Do NOT answer that there is nothing to
+play, and do NOT pick a band on their behalf to search for instead.
 
 Use play_music for one song and queue_music for a set of them. Asking which of
 forty tracks was meant is the wrong question when somebody asked for all forty.
@@ -278,6 +283,19 @@ export function activate(ctx) {
 
       const wanted = String(steps ?? '').trim();
       const hits = search(tracks, wanted);
+
+      // "something", "a random song", "surprise me": a helping rather than a
+      // name, and nothing in a library is called that — so the search finds
+      // nothing and the answer used to be that nothing matched, which is not
+      // an honest reply to "play me anything". Read after the search and not
+      // before it, so a band actually called Random still plays when the
+      // library holds one.
+      const helping = hits.length === 0 ? helpingOnly(wanted) : null;
+      if (helping) {
+        const drawn = helping.count > 0 ? shuffled(tracks).slice(0, helping.count) : tracks;
+        return start(drawn, `${wanted} — ${drawn.length} track(s) drawn at random`, true);
+      }
+
       if (hits.length === 0) {
         // Naming a few of what *is* there is worth more than "not found": the
         // model can offer an alternative instead of asking the same question
@@ -347,23 +365,51 @@ export function activate(ctx) {
       turn.status('Building a playlist…');
       const tracks = await ensureLibrary();
 
+      if (tracks.length === 0) {
+        return {
+          ok: false,
+          summary: 'the library is empty',
+          feedback: `[MUSIC] No audio files were found under ${folder()}. Tell the user, and suggest they check the folder in the plugin list.`,
+        };
+      }
+
       // After a `|` rather than anywhere in the words: a band called Random
       // Order would otherwise be unplayable in order, and the model is told
       // exactly what to write.
       const [rawQuery = '', ...modifiers] = String(steps ?? '').split('|');
       const wanted = rawQuery.trim();
       const modifier = modifiers.join(' ');
-      const askedShuffle = /shuffle|random/i.test(modifier);
       const askedOrder = /in ?order|ordered|alphabet|sequence/i.test(modifier);
 
-      const hits = wanted ? search(tracks, wanted) : tracks;
+      const found = wanted ? search(tracks, wanted) : tracks;
+
+      // "5 random songs", "some music", "any band": a helping rather than a
+      // name. The search found nothing, because nothing is called that, and a
+      // library of two hundred tracks was reported back as having no playlist
+      // to build. What they asked for is the whole library, this many of it,
+      // in a random order.
+      const helping = wanted && found.length === 0 ? helpingOnly(wanted) : null;
+      const hits = helping ? tracks : found;
+
       if (hits.length === 0) {
+        // Never "there is nothing to play" in front of a library that has
+        // something in it: name a few, so the model offers instead of asking
+        // the same question again.
+        const sample = tracks.slice(0, NAMED_IN_FEEDBACK).map((track) => track.title).join(', ');
         return {
           ok: false,
           summary: `nothing matches "${wanted}"`,
-          feedback: `[MUSIC] Nothing in the library matches "${wanted}", so there is no playlist to build. Say so, and ask what they meant.`,
+          feedback:
+            `[MUSIC] Nothing in the library matches "${wanted}", so there is no playlist to build. The library is ` +
+            `NOT empty — it holds ${tracks.length} track(s), including: ${sample}. Say that nothing matched that, ` +
+            'offer one of those, and ask what they meant.',
         };
       }
+
+      const askedShuffle = /shuffle|random/i.test(modifier) || Boolean(helping);
+      // How many they asked for: after the `|`, or carried by the helping.
+      const askedCount = Number((/\d{1,4}/.exec(modifier) ?? [])[0] ?? 0);
+      const limit = askedCount || helping?.count || 0;
 
       // An album is the one playlist somebody else already put in an order, so
       // it is played in that order. Everything else — a band, a genre, the
@@ -375,14 +421,21 @@ export function activate(ctx) {
       const list = record ?? hits;
       const wantsShuffle = askedShuffle || (!askedOrder && !record && list.length > 1);
 
-      const first = queueUp(list, wantsShuffle);
+      // A count is taken after the order is settled, never before it: five off
+      // the top of a shuffled pile are five random tracks, five off the top of
+      // an alphabetical one are the same five every time.
+      const drawn =
+        limit > 0 && limit < list.length ? (wantsShuffle ? shuffled(list) : list).slice(0, limit) : list;
+
+      const first = queueUp(drawn, wantsShuffle);
       const named = queue.slice(0, NAMED_IN_FEEDBACK).map((track) => track.title).join(', ');
       const how = shuffle ? ' in a random order' : record ? ' in album order' : '';
+      const what = helping ? `${wanted} — drawn from the whole library` : wanted || 'everything';
       return {
         ok: true,
         summary: `${queue.length} track(s)${shuffle ? ', shuffled' : ''} — now ${first.title}`,
         feedback:
-          `[MUSIC] Queued ${queue.length} track(s)${how} for "${wanted || 'everything'}", ` +
+          `[MUSIC] Queued ${queue.length} track(s)${how} for "${what}", ` +
           `now playing "${first.title}". It includes: ${named}${queue.length > NAMED_IN_FEEDBACK ? ', …' : ''}. ` +
           'Say how many are queued and what is playing, in one short sentence.',
       };
